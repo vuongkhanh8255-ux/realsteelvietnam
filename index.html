@@ -1362,6 +1362,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 const SUPABASE_URL = 'https://xkyhvcmnkrxdtmwtghln.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreWh2Y21ua3J4ZHRtd3RnaGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDg5MTYsImV4cCI6MjA3MzQ4NDkxNn0.WPQAAZ8NnwXKvf7dqzsimGl_jfSDClfwZgDYvfjVDQs';
 
+// ── BẮT CLICK_UUID TỪ URL PERMATE ──
+const _urlParams = new URLSearchParams(window.location.search);
+const _clickUuid = _urlParams.get('utm_content') || _urlParams.get('click_uuid') || null;
+
 // Form Submit Handler
 const orderForm = document.getElementById('orderForm');
 if(orderForm){
@@ -1399,6 +1403,7 @@ if(orderForm){
           dia_chi: address,
           goi_san_pham: packageVal,
           ghi_chu: note || null,
+          click_uuid: _clickUuid || null,
           source: 'landing_page'
         })
       });
