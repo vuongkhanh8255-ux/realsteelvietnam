@@ -7,11 +7,15 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = 'Real Steel <onboarding@resend.dev>';
 
 // ── PERMATE POSTBACK ──
+const PERMATE_BRAND_ID  = '200568';
+const PERMATE_API_KEY   = '34a32bbe170d4ee598d401c39187';
+const PERMATE_OFFER_ID  = '2729';
+const PERMATE_EVENT_ID  = '3052';
+
 async function firePermatePostback(clickUuid, saleValue) {
   if (!clickUuid) return;
   try {
-    // URL postback từ Permate — Văn Tâm sẽ cung cấp URL chính xác
-    const url = `https://pmcloud1.com/c/pb?click_uuid=${encodeURIComponent(clickUuid)}&sale_value=${saleValue}`;
+    const url = `https://pmcloud1.com/api/v1/conversion?brand_id=${PERMATE_BRAND_ID}&api_key=${PERMATE_API_KEY}&offer_id=${PERMATE_OFFER_ID}&event_id=${PERMATE_EVENT_ID}&click_uuid=${encodeURIComponent(clickUuid)}&sale_value=${saleValue}`;
     const r = await fetch(url, { method: 'GET' });
     console.log(`[Permate] Postback ${r.status} — click: ${clickUuid}, value: ${saleValue}`);
   } catch(e) {
