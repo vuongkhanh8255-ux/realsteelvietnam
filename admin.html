@@ -431,7 +431,14 @@
         document.getElementById('action-' + id).textContent = '—';
         loadOrders();
 
-        // 3. Gửi email xác nhận nếu có email
+        // 3. Fire Permate postback nếu đơn có click_uuid (COD giao thành công)
+        if (order?.click_uuid && order?.so_tien) {
+          const pbUrl = `https://pmcloud1.com/postback?api_key=34a32bbe170d4ee598d401c39187&pm_adv_id=200568&click_uuid=${encodeURIComponent(order.click_uuid)}&offer_id=2729&event_id=3052&sale_value=${order.so_tien}`;
+          fetch(pbUrl, { method: 'GET', mode: 'no-cors' }).catch(() => {});
+          console.log('[Permate] COD postback fired, value:', order.so_tien);
+        }
+
+        // 4. Gửi email xác nhận nếu có email
         if (order?.email) {
           fetch('/api/send-email', {
             method: 'POST',
