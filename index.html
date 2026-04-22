@@ -1346,7 +1346,7 @@ const _packagePriceMap = {
 async function firePermatePostback(clickUuid, saleValue) {
   if (!clickUuid) return;
   try {
-    const url = `https://pmcloud1.com/api/v1/conversion?brand_id=200568&api_key=34a32bbe170d4ee598d401c39187&offer_id=2729&event_id=3052&click_uuid=${encodeURIComponent(clickUuid)}&sale_value=${saleValue}`;
+    const url = `https://pmcloud1.com/postback?api_key=34a32bbe170d4ee598d401c39187&pm_adv_id=200568&click_uuid=${encodeURIComponent(clickUuid)}&offer_id=2729&event_id=3052&sale_value=${saleValue}`;
     await fetch(url, { method: 'GET', mode: 'no-cors' });
     console.log('[Permate] Postback fired, value:', saleValue);
   } catch(e) {
