@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Real Steel CRM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0d0f1a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .header {
+      background: #181b2a;
+      border-bottom: 1px solid #1e2130;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 18px; font-weight: 800; letter-spacing: 2px; }
+    .logo span { color: #3b82f6; }
+    .header-right { font-size: 12px; color: #4b5563; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 20px 24px 0;
+      border-bottom: 1px solid #1e2130;
+    }
+    .tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: all .2s;
+    }
+    .tab:hover { color: #e2e8f0; background: #181b2a; }
+    .tab.active {
+      color: #e2e8f0;
+      background: #181b2a;
+      border-color: #1e2130;
+    }
+
+    /* CONTENT */
+    .content { padding: 24px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* STATS ROW */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #181b2a;
+      border: 1px solid #1e2130;
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .stat-card .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .stat-card .value { font-size: 26px; font-weight: 800; }
+    .stat-card .value.blue { color: #3b82f6; }
+    .stat-card .value.green { color: #22c55e; }
+    .stat-card .value.yellow { color: #f59e0b; }
+
+    /* TABLE */
+    .table-wrap {
+      background: #181b2a;
+      border: 1px solid #1e2130;
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e2130;
+    }
+    .table-header h3 { font-size: 14px; font-weight: 700; }
+    .btn-refresh {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      color: #94a3b8;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-refresh:hover { background: #2d3148; color: #e2e8f0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      padding: 10px 20px;
+      background: #12141f;
+      border-bottom: 1px solid #1e2130;
+    }
+    tbody tr { border-bottom: 1px solid #1e2130; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #12141f; }
+    td {
+      padding: 12px 20px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    td.mono { font-family: monospace; font-size: 12px; color: #94a3b8; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .3px;
+    }
+    .badge.success { background: #14532d; color: #4ade80; }
+    .badge.pending { background: #1c1917; color: #f59e0b; }
+    .badge.cancelled { background: #2d1515; color: #f87171; }
+
+    .empty {
+      text-align: center;
+      padding: 48px;
+      color: #4b5563;
+      font-size: 13px;
+    }
+
+    .btn-confirm {
+      background: #14532d;
+      border: 1px solid #16a34a;
+      color: #4ade80;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-confirm:hover { background: #166534; color: #86efac; }
+    .btn-confirm:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: #4b5563; font-size: 13px; }
+    .spinner-sm {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid #2d3148;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Login gate */
+    #login-gate {
+      position: fixed; inset: 0;
+      background: #0d0f1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .login-card {
+      background: #181b2a;
+      border: 1px solid #1e2130;
+      border-radius: 16px;
+      padding: 36px;
+      width: 340px;
+      text-align: center;
+    }
+    .login-card h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .login-card p { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
+    .login-card input {
+      width: 100%;
+      background: #0d0f1a;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #e2e8f0;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 4px;
+    }
+    .login-card input:focus { border-color: #3b82f6; }
+    .login-card button {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .login-err { font-size: 12px; color: #f87171; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-gate">
+  <div class="login-card">
+    <h2>Real Steel Admin</h2>
+    <p>Nhập mật khẩu để vào</p>
+    <input type="password" id="pw-input" placeholder="••••••" onkeydown="if(event.key==='Enter') login()" />
+    <button onclick="login()">Đăng nhập</button>
+    <div class="login-err" id="login-err">Sai mật khẩu</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="logo">REAL<span>STEEL</span> <span style="font-size:12px;font-weight:400;color:#4b5563;letter-spacing:0">Admin</span></div>
+    <div class="header-right" id="last-updated"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('orders')">📦 Đơn hàng</div>
+    <div class="tab" onclick="switchTab('customers')">👥 Khách hàng</div>
+    <div class="tab" onclick="switchTab('products')">🧴 Sản phẩm</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ORDERS TAB -->
+    <div class="panel active" id="panel-orders">
+      <div class="stats" id="order-stats">
+        <div class="stat-card"><div class="label">Tổng đơn</div><div class="value blue" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="label">Thành công</div><div class="value green" id="stat-success">—</div></div>
+        <div class="stat-card"><div class="label">Chờ thanh toán</div><div class="value yellow" id="stat-pending">—</div></div>
+        <div class="stat-card"><div class="label">Doanh thu</div><div class="value green" id="stat-revenue">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Danh sách đơn hàng</h3>
+          <button class="btn-refresh" onclick="loadOrders()">⟳ Làm mới</button>
+        </div>
+        <div id="orders-table-body"></div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS TAB -->
+    <div class="panel" id="panel-customers">
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Khách hàng đã đặt hàng</h3>
+          <button class="btn-refresh" onclick="loadCustomers()">⟳ Làm mới</button>
+        </div>
+        <div id="customers-table-body"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div class="panel" id="panel-products">
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Sản phẩm</h3>
+          <button class="btn-refresh" onclick="loadProducts()">⟳ Làm mới</button>
+        </div>
+        <div id="products-table-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xkyhvcmnkrxdtmwtghln.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreWh2Y21ua3J4ZHRtd3RnaGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDg5MTYsImV4cCI6MjA3MzQ4NDkxNn0.WPQAAZ8NnwXKvf7dqzsimGl_jfSDClfwZgDYvfjVDQs';
+  const ADMIN_PASSWORD = 'realsteel2024';
+
+  // ---- LOGIN ----
+  function login() {
+    const pw = document.getElementById('pw-input').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('login-gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadOrders();
+    } else {
+      document.getElementById('login-err').style.display = 'block';
+    }
+  }
+
+  // ---- TABS ----
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+    if (name === 'orders') loadOrders();
+    if (name === 'customers') loadCustomers();
+    if (name === 'products') loadProducts();
+  }
+
+  // ---- FETCH ----
+  async function supaFetch(table, params = '') {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}&order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return res.json();
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtMoney(n) {
+    if (!n) return '—';
+    return Number(n).toLocaleString('vi-VN') + 'đ';
+  }
+
+  function setUpdated() {
+    document.getElementById('last-updated').textContent = 'Cập nhật: ' + new Date().toLocaleTimeString('vi-VN');
+  }
+
+  // ---- ORDERS ----
+  async function loadOrders() {
+    document.getElementById('orders-table-body').innerHTML = '<div class="loading"><span class="spinner-sm"></span>Đang tải...</div>';
+    try {
+      const data = await supaFetch('rs_orders', 'select=*');
+
+      // Stats
+      const total = data.length;
+      const success = data.filter(o => o.trang_thai === 'success');
+      const pending = data.filter(o => o.trang_thai === 'pending').length;
+      const revenue = success.reduce((s, o) => s + (o.so_tien || 0), 0);
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-success').textContent = success.length;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-revenue').textContent = revenue ? revenue.toLocaleString('vi-VN') + 'đ' : '0đ';
+
+      if (!data.length) {
+        document.getElementById('orders-table-body').innerHTML = '<div class="empty">Chưa có đơn hàng nào</div>';
+        return;
+      }
+
+      let html = `<table><thead><tr>
+        <th>Mã đơn</th>
+        <th>Khách hàng</th>
+        <th>SĐT</th>
+        <th>Sản phẩm</th>
+        <th>Số tiền</th>
+        <th>Email</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+        <th>Thời gian</th>
+      </tr></thead><tbody>`;
+
+      data.forEach(o => {
+        const badgeClass = o.trang_thai === 'success' ? 'success' : o.trang_thai === 'cancelled' ? 'cancelled' : 'pending';
+        const badgeText = o.trang_thai === 'success' ? '✓ Thành công' : o.trang_thai === 'cancelled' ? '✗ Hủy' : '⏳ Chờ';
+        const actionBtn = o.trang_thai === 'pending'
+          ? `<button class="btn-confirm" onclick="confirmOrder('${o.id}', this)">✓ Xác nhận</button>`
+          : '—';
+        html += `<tr id="row-${o.id}">
+          <td class="mono">${o.order_code || '—'}</td>
+          <td>${o.ho_ten || '—'}</td>
+          <td class="mono">${o.so_dien_thoai || '—'}</td>
+          <td>${o.san_pham || '—'}</td>
+          <td style="font-weight:600;color:#3b82f6">${fmtMoney(o.so_tien)}</td>
+          <td style="font-size:12px;color:#6b7280">${o.email || '—'}</td>
+          <td id="badge-${o.id}"><span class="badge ${badgeClass}">${badgeText}</span></td>
+          <td id="action-${o.id}">${actionBtn}</td>
+          <td style="font-size:12px;color:#4b5563">${fmtDate(o.created_at)}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('orders-table-body').innerHTML = html;
+      setUpdated();
+    } catch (e) {
+      document.getElementById('orders-table-body').innerHTML = '<div class="empty">Lỗi tải dữ liệu: ' + e.message + '</div>';
+    }
+  }
+
+  // ---- CONFIRM ORDER ----
+  async function confirmOrder(id, btn) {
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      // 1. Lấy thông tin đơn hàng
+      const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/rs_orders?id=eq.${id}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const orders = await orderRes.json();
+      const order = orders[0];
+
+      // 2. Cập nhật trạng thái
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rs_orders?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ trang_thai: 'success' })
+      });
+
+      if (res.ok) {
+        document.getElementById('badge-' + id).innerHTML = '<span class="badge success">✓ Thành công</span>';
+        document.getElementById('action-' + id).textContent = '—';
+        loadOrders();
+
+        // 3. Gửi email xác nhận nếu có email
+        if (order?.email) {
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'confirmation',
+              email: order.email,
+              ho_ten: order.ho_ten,
+              san_pham: order.san_pham,
+              so_tien: order.so_tien,
+              order_code: order.order_code
+            })
+          }).catch(() => {});
+        }
+      } else {
+        btn.disabled = false;
+        btn.textContent = '✓ Xác nhận';
+        alert('Lỗi cập nhật. Thử lại.');
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '✓ Xác nhận';
+      alert('Lỗi: ' + e.message);
+    }
+  }
+
+  // ---- CUSTOMERS ----
+  async function loadCustomers() {
+    document.getElementById('customers-table-body').innerHTML = '<div class="loading"><span class="spinner-sm"></span>Đang tải...</div>';
+    try {
+      // Get unique customers from orders
+      const data = await supaFetch('rs_orders', 'select=ho_ten,so_dien_thoai,san_pham,so_tien,trang_thai,created_at');
+
+      if (!data.length) {
+        document.getElementById('customers-table-body').innerHTML = '<div class="empty">Chưa có khách hàng nào</div>';
+        return;
+      }
+
+      // Deduplicate by phone
+      const seen = new Set();
+      const unique = data.filter(o => {
+        if (seen.has(o.so_dien_thoai)) return false;
+        seen.add(o.so_dien_thoai);
+        return true;
+      });
+
+      let html = `<table><thead><tr>
+        <th>Họ tên</th>
+        <th>Số điện thoại</th>
+        <th>Sản phẩm đặt</th>
+        <th>Trạng thái</th>
+        <th>Ngày đặt</th>
+      </tr></thead><tbody>`;
+
+      unique.forEach(o => {
+        const badgeClass = o.trang_thai === 'success' ? 'success' : o.trang_thai === 'cancelled' ? 'cancelled' : 'pending';
+        const badgeText = o.trang_thai === 'success' ? '✓ Đã thanh toán' : o.trang_thai === 'cancelled' ? '✗ Hủy' : '⏳ Chờ';
+        html += `<tr>
+          <td style="font-weight:600">${o.ho_ten || '—'}</td>
+          <td class="mono">${o.so_dien_thoai || '—'}</td>
+          <td>${o.san_pham || '—'}</td>
+          <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+          <td style="font-size:12px;color:#4b5563">${fmtDate(o.created_at)}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('customers-table-body').innerHTML = html;
+      setUpdated();
+    } catch (e) {
+      document.getElementById('customers-table-body').innerHTML = '<div class="empty">Lỗi tải dữ liệu: ' + e.message + '</div>';
+    }
+  }
+
+  // ---- PRODUCTS ----
+  async function loadProducts() {
+    document.getElementById('products-table-body').innerHTML = '<div class="loading"><span class="spinner-sm"></span>Đang tải...</div>';
+    try {
+      const data = await supaFetch('rs_products', 'select=*');
+
+      if (!data.length) {
+        document.getElementById('products-table-body').innerHTML = '<div class="empty">Chưa có sản phẩm nào</div>';
+        return;
+      }
+
+      let html = `<table><thead><tr>
+        <th>Tên sản phẩm</th>
+        <th>Giá</th>
+        <th>Mô tả</th>
+        <th>Trạng thái</th>
+      </tr></thead><tbody>`;
+
+      data.forEach(p => {
+        html += `<tr>
+          <td style="font-weight:600">${p.ten_san_pham || p.name || '—'}</td>
+          <td style="font-weight:700;color:#3b82f6">${fmtMoney(p.gia || p.price)}</td>
+          <td style="color:#6b7280;font-size:12px">${p.mo_ta || p.description || '—'}</td>
+          <td><span class="badge success">✓ Active</span></td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('products-table-body').innerHTML = html;
+      setUpdated();
+    } catch (e) {
+      document.getElementById('products-table-body').innerHTML = '<div class="empty">Lỗi tải dữ liệu: ' + e.message + '</div>';
+    }
+  }
+</script>
+</body>
+</html>

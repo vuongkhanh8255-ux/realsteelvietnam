@@ -1,2 +1,16 @@
-.vercel/ 
-*.bak 
+.vercel/
+*.bak
+.vercel
+
+# Biến môi trường — KHÔNG bao giờ commit lên GitHub
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*

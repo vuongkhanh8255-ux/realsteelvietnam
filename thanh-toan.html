@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đặt hàng — Real Steel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0d0f1a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+    .logo { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: #fff; margin-bottom: 8px; }
+    .logo span { color: #3b82f6; }
+    .back-link { font-size: 12px; color: #4b5563; margin-bottom: 28px; text-decoration: none; }
+    .back-link:hover { color: #94a3b8; }
+
+    /* STEPS */
+    .steps { display: flex; gap: 0; margin-bottom: 28px; }
+    .step-dot {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; color: #4b5563;
+    }
+    .step-dot.active { color: #3b82f6; }
+    .step-dot.done { color: #22c55e; }
+    .dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #1e2130; display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 700;
+    }
+    .step-dot.active .dot { background: #3b82f6; color: #fff; }
+    .step-dot.done .dot { background: #22c55e; color: #fff; }
+    .step-line { width: 32px; height: 1px; background: #1e2130; margin: 0 8px; align-self: center; }
+
+    /* CARD */
+    .card {
+      background: #181b2a; border: 1px solid #1e2130;
+      border-radius: 16px; padding: 28px; width: 100%; max-width: 460px;
+    }
+    .card h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .card .sub { font-size: 13px; color: #6b7280; margin-bottom: 22px; }
+
+    /* SELECTED PRODUCT BANNER */
+    .product-banner {
+      background: #0d0f1a; border: 1px solid #2d3148;
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .product-banner .pname { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .product-banner .pprice { font-size: 16px; font-weight: 800; color: #3b82f6; }
+
+    /* PRODUCT CARDS */
+    .product-cards { display: flex; gap: 10px; margin-bottom: 18px; }
+    .product-card {
+      flex: 1; border: 2px solid #2d3148; border-radius: 10px;
+      padding: 12px; cursor: pointer; transition: all .2s;
+    }
+    .product-card:hover { border-color: #3b82f6; }
+    .product-card.selected { border-color: #3b82f6; background: #1a2340; }
+    .product-card .pname { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .product-card .pprice { font-size: 14px; font-weight: 800; color: #3b82f6; }
+    .product-card .pdesc { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+    /* FORM */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+    input, textarea {
+      width: 100%; background: #0d0f1a; border: 1px solid #2d3148;
+      border-radius: 8px; padding: 11px 13px; color: #e2e8f0;
+      font-size: 14px; outline: none; transition: border .2s;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus { border-color: #3b82f6; }
+    textarea { resize: none; height: 72px; }
+
+    .btn {
+      width: 100%; background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff; border: none; border-radius: 10px; padding: 14px;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; margin-top: 6px;
+    }
+    .btn:hover { opacity: .9; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .error-msg {
+      background: #2d1515; border: 1px solid #7f1d1d; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; color: #fca5a5; margin-top: 10px; display: none;
+    }
+
+    /* STEP 2 — Chọn phương thức */
+    .pay-options { display: flex; flex-direction: column; gap: 12px; }
+    .pay-opt {
+      border: 2px solid #2d3148; border-radius: 12px; padding: 18px 20px;
+      cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 16px;
+    }
+    .pay-opt:hover { border-color: #3b82f6; background: #12141f; }
+    .pay-opt .pay-icon { font-size: 28px; }
+    .pay-opt .pay-text .pt { font-size: 15px; font-weight: 700; }
+    .pay-opt .pay-text .ps { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .order-summary {
+      background: #0d0f1a; border: 1px solid #1e2130; border-radius: 10px;
+      padding: 14px 16px; margin-bottom: 20px; font-size: 13px;
+    }
+    .order-summary .row { display: flex; justify-content: space-between; margin-bottom: 6px; color: #94a3b8; }
+    .order-summary .row.total { color: #e2e8f0; font-weight: 700; margin-bottom: 0; font-size: 14px; }
+    .order-summary .row.total span:last-child { color: #3b82f6; font-size: 16px; }
+
+    /* STEP 3 — QR */
+    .qr-card { text-align: center; }
+    .qr-card h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .qr-card .sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+    .amount { font-size: 28px; font-weight: 800; color: #3b82f6; margin-bottom: 16px; }
+    .qr-img-wrap { background: #fff; border-radius: 12px; display: inline-block; padding: 10px; margin-bottom: 14px; }
+    .qr-img-wrap img { display: block; width: 210px; height: 210px; }
+    .bank-info { font-size: 13px; color: #94a3b8; line-height: 1.9; margin-bottom: 14px; }
+    .bank-info strong { color: #e2e8f0; }
+    .order-code-tag {
+      display: inline-block; background: #1e2130; border-radius: 6px;
+      padding: 4px 12px; font-size: 13px; font-family: monospace; color: #94a3b8; margin-bottom: 16px;
+    }
+    .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid #2d3148; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hint { font-size: 11px; color: #374151; line-height: 1.6; }
+
+    /* STEP 4 — COD success */
+    /* STEP 4 — Success */
+    .success-card { text-align: center; }
+    .checkmark { width: 68px; height: 68px; background: linear-gradient(135deg,#22c55e,#16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 32px; }
+    .success-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .success-card p { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+    .order-box { background: #0d0f1a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13px; color: #94a3b8; }
+    .order-box strong { color: #22c55e; font-size: 15px; font-family: monospace; }
+    .btn-back { display: inline-block; margin-top: 20px; background: transparent; border: 1px solid #2d3148; color: #94a3b8; border-radius: 8px; padding: 10px 24px; font-size: 13px; cursor: pointer; text-decoration: none; }
+    .btn-back:hover { border-color: #3b82f6; color: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<div class="logo">REAL<span>STEEL</span></div>
+<a href="/" class="back-link">← Quay về trang chủ</a>
+
+<!-- STEPS INDICATOR -->
+<div class="steps" id="steps-bar">
+  <div class="step-dot active" id="s1"><div class="dot">1</div><span>Thông tin</span></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="s2"><div class="dot">2</div><span>Thanh toán</span></div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="s3"><div class="dot">3</div><span>Xác nhận</span></div>
+</div>
+
+<!-- STEP 1: FORM -->
+<div class="card" id="step1">
+  <h2>Thông tin đặt hàng</h2>
+  <p class="sub">Điền đầy đủ để mình giao đúng địa chỉ</p>
+
+  <!-- Sản phẩm -->
+  <div id="product-banner-wrap" style="display:none">
+    <div class="product-banner">
+      <div class="pname" id="banner-name"></div>
+      <div class="pprice" id="banner-price"></div>
+    </div>
+  </div>
+  <div id="product-cards-wrap">
+    <div class="form-group">
+      <label>Chọn sản phẩm</label>
+      <div class="product-cards">
+        <div class="product-card selected" data-name="Real Steel Standard" data-price="299000">
+          <div class="pname">Standard</div>
+          <div class="pprice">299.000đ</div>
+          <div class="pdesc">Procapil 3% · 60ml</div>
+        </div>
+        <div class="product-card" data-name="Real Steel Ultra Boost" data-price="399000">
+          <div class="pname">Ultra Boost</div>
+          <div class="pprice">399.000đ</div>
+          <div class="pdesc">Procapil 5% + Biotin · 60ml</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Họ tên</label>
+    <input type="text" id="ho-ten" placeholder="Nguyễn Văn A" autocomplete="name" />
+  </div>
+  <div class="form-group">
+    <label>Số điện thoại</label>
+    <input type="tel" id="sdt" placeholder="0912345678" autocomplete="tel" />
+  </div>
+  <div class="form-group">
+    <label>Địa chỉ giao hàng</label>
+    <input type="text" id="dia-chi" placeholder="Số nhà, đường, phường, quận, tỉnh/thành" />
+  </div>
+  <div class="form-group">
+    <label>Email <span style="color:#4b5563;font-weight:400;text-transform:none">(để nhận xác nhận đơn hàng)</span></label>
+    <input type="email" id="email" placeholder="example@gmail.com" autocomplete="email" />
+  </div>
+
+  <div class="error-msg" id="err1"></div>
+  <button class="btn" onclick="goStep2()">Tiếp tục →</button>
+</div>
+
+<!-- STEP 2: CHỌN THANH TOÁN -->
+<div class="card" id="step2" style="display:none">
+  <h2>Chọn thanh toán</h2>
+  <p class="sub">Đơn hàng của bạn</p>
+
+  <div class="order-summary" id="order-summary"></div>
+
+  <div class="pay-options">
+    <div class="pay-opt" onclick="chooseQR()">
+      <div class="pay-icon">📱</div>
+      <div class="pay-text">
+        <div class="pt">Chuyển khoản QR</div>
+        <div class="ps">Tự động xác nhận • Không cần đợi gọi lại</div>
+      </div>
+    </div>
+    <div class="pay-opt" onclick="chooseCOD()">
+      <div class="pay-icon">🚚</div>
+      <div class="pay-text">
+        <div class="pt">Thanh toán khi nhận hàng</div>
+        <div class="ps">COD • Trả tiền mặt cho shipper</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: QR -->
+<div class="card qr-card" id="step3" style="display:none">
+  <h2>Quét mã để thanh toán</h2>
+  <p class="sub">Giữ trang này mở trong lúc chuyển khoản</p>
+  <div class="amount" id="qr-amount"></div>
+  <div class="qr-img-wrap">
+    <img id="qr-img" src="" alt="QR thanh toán" />
+  </div>
+  <div class="bank-info">
+    <strong>BIDV</strong> · STK: <strong>1770085184</strong><br />
+    Tên: <strong>VUONG QUOC KHANH</strong><br />
+    Nội dung CK: <strong id="qr-content" style="color:#3b82f6;font-family:monospace"></strong>
+  </div>
+  <div class="order-code-tag" id="qr-order-code"></div>
+  <div class="status-bar">
+    <span class="spinner"></span>
+    <span>Đang chờ thanh toán...</span>
+  </div>
+  <p class="hint">Hệ thống tự động xác nhận ngay khi nhận được tiền.<br/>Không cần báo lại cho mình.</p>
+</div>
+
+<!-- STEP 4: SUCCESS -->
+<div class="card success-card" id="step4" style="display:none">
+  <div class="checkmark">✓</div>
+  <h2 id="success-title">Đặt hàng thành công!</h2>
+  <p id="success-msg"></p>
+  <div class="order-box">Mã đơn: <strong id="success-code"></strong></div>
+  <p style="font-size:13px;color:#94a3b8">Mình sẽ liên hệ qua SĐT để xác nhận địa chỉ giao hàng trong vòng 24h.</p>
+  <a href="/" class="btn-back">← Về trang chủ</a>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xkyhvcmnkrxdtmwtghln.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreWh2Y21ua3J4ZHRtd3RnaGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDg5MTYsImV4cCI6MjA3MzQ4NDkxNn0.WPQAAZ8NnwXKvf7dqzsimGl_jfSDClfwZgDYvfjVDQs';
+
+  // ── Đọc click_uuid từ localStorage (set bởi landing page khi Permate traffic vào) ──
+  const _clickUuid = (() => {
+    const saved = localStorage.getItem('permate_click_uuid');
+    const savedTime = parseInt(localStorage.getItem('permate_click_time') || '0');
+    if (saved && (Date.now() - savedTime) < 7 * 24 * 60 * 60 * 1000) return saved;
+    return null;
+  })();
+
+  // Đọc params từ landing page
+  const _p = new URLSearchParams(location.search);
+  let selectedProduct = { name: 'Real Steel Standard', price: 299000 };
+
+  if (_p.get('product') && _p.get('price')) {
+    selectedProduct = { name: _p.get('product'), price: parseInt(_p.get('price')) };
+    document.getElementById('product-banner-wrap').style.display = 'block';
+    document.getElementById('product-cards-wrap').style.display = 'none';
+    document.getElementById('banner-name').textContent = selectedProduct.name;
+    document.getElementById('banner-price').textContent = selectedProduct.price.toLocaleString('vi-VN') + 'đ';
+  }
+
+  // Product card selection
+  document.querySelectorAll('.product-card').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.product-card').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+      selectedProduct = { name: c.dataset.name, price: parseInt(c.dataset.price) };
+    });
+  });
+
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.display = 'block';
+  }
+  function hideErr(id) { document.getElementById(id).style.display = 'none'; }
+
+  function setStep(n) {
+    [1,2,3,4].forEach(i => document.getElementById('step'+i).style.display = i===n ? 'block' : 'none');
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('s'+i);
+      el.className = 'step-dot' + (i===n ? ' active' : i<n ? ' done' : '');
+      el.querySelector('.dot').textContent = i < n ? '✓' : i;
+    });
+    if (n >= 4) document.getElementById('steps-bar').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // STEP 1 → 2
+  function goStep2() {
+    hideErr('err1');
+    const ht = document.getElementById('ho-ten').value.trim();
+    const sdt = document.getElementById('sdt').value.trim();
+    const dc = document.getElementById('dia-chi').value.trim();
+    const em = document.getElementById('email').value.trim();
+    if (!ht) return showErr('err1', 'Vui lòng nhập họ tên');
+    if (!sdt || !/^0\d{9}$/.test(sdt)) return showErr('err1', 'Số điện thoại không hợp lệ (VD: 0912345678)');
+    if (!dc) return showErr('err1', 'Vui lòng nhập địa chỉ giao hàng');
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return showErr('err1', 'Email không hợp lệ (VD: example@gmail.com)');
+
+    document.getElementById('order-summary').innerHTML = `
+      <div class="row"><span>Sản phẩm</span><span>${selectedProduct.name}</span></div>
+      <div class="row"><span>Khách hàng</span><span>${ht}</span></div>
+      <div class="row"><span>SĐT</span><span>${sdt}</span></div>
+      <div class="row"><span>Địa chỉ</span><span>${dc}</span></div>
+      <div class="row"><span>Email</span><span>${em}</span></div>
+      <div class="row total"><span>Tổng tiền</span><span>${selectedProduct.price.toLocaleString('vi-VN')}đ</span></div>
+    `;
+    setStep(2);
+  }
+
+  let pollInterval = null;
+  let currentOrderCode = '';
+
+  // STEP 2 → 3 (QR)
+  async function chooseQR() {
+    const ht = document.getElementById('ho-ten').value.trim();
+    const sdt = document.getElementById('sdt').value.trim();
+    const dc = document.getElementById('dia-chi').value.trim();
+    const em = document.getElementById('email').value.trim();
+
+    try {
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ho_ten: ht, so_dien_thoai: sdt, dia_chi: dc, email: em, san_pham: selectedProduct.name, so_tien: selectedProduct.price, click_uuid: _clickUuid })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Lỗi tạo đơn');
+      currentOrderCode = data.order_code;
+      showQR(currentOrderCode, selectedProduct.price);
+    } catch(e) {
+      alert('Lỗi: ' + e.message);
+    }
+  }
+
+  function showQR(code, amount) {
+    setStep(3);
+    document.getElementById('qr-amount').textContent = amount.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('qr-content').textContent = code;
+    document.getElementById('qr-order-code').textContent = 'Mã đơn: ' + code;
+    document.getElementById('qr-img').src = `https://img.vietqr.io/image/BIDV-1770085184-compact2.jpg?amount=${amount}&addInfo=${code}&accountName=VUONG%20QUOC%20KHANH`;
+    pollInterval = setInterval(() => checkPayment(code), 3000);
+  }
+
+  async function checkPayment(code) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rs_orders?order_code=eq.${code}&select=trang_thai`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+      if (data?.[0]?.trang_thai === 'success') {
+        clearInterval(pollInterval);
+        showSuccess(code, false);
+      }
+    } catch(e) {}
+  }
+
+  // STEP 2 → COD
+  async function chooseCOD() {
+    const ht = document.getElementById('ho-ten').value.trim();
+    const sdt = document.getElementById('sdt').value.trim();
+    const dc = document.getElementById('dia-chi').value.trim();
+
+    try {
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ho_ten: ht, so_dien_thoai: sdt, dia_chi: dc, email: document.getElementById('email').value.trim(), san_pham: selectedProduct.name, so_tien: selectedProduct.price, phuong_thuc: 'COD', click_uuid: _clickUuid })
+      });
+      const data = await res.json();
+      currentOrderCode = data.order_code || '—';
+    } catch(e) { currentOrderCode = '—'; }
+
+    showSuccess(currentOrderCode, true);
+  }
+
+  function showSuccess(code, isCOD) {
+    setStep(4);
+    document.getElementById('success-code').textContent = code;
+    if (isCOD) {
+      document.getElementById('success-title').textContent = 'Đặt hàng thành công!';
+      document.getElementById('success-msg').textContent = 'Mình đã nhận đơn COD của bạn. Shipper sẽ thu tiền khi giao hàng.';
+    } else {
+      document.getElementById('success-title').textContent = 'Thanh toán thành công!';
+      document.getElementById('success-msg').textContent = 'Mình đã nhận được thanh toán. Real Steel sẽ được giao đến bạn sớm nhất.';
+    }
+  }
+</script>
+</body>
+</html>
