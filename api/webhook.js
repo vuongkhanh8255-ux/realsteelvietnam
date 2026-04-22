@@ -4,6 +4,18 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
+// ── PERMATE POSTBACK — chỉ fire khi thanh toán thành công ──
+async function firePermatePostback(clickUuid, saleValue) {
+  if (!clickUuid) return;
+  try {
+    const url = `https://pmcloud1.com/postback?api_key=34a32bbe170d4ee598d401c39187&pm_adv_id=200568&click_uuid=${encodeURIComponent(clickUuid)}&offer_id=2729&event_id=3052&sale_value=${saleValue}`;
+    const r = await fetch(url, { method: 'GET' });
+    console.log(`[Permate] Postback OK — click: ${clickUuid}, value: ${saleValue}`);
+  } catch(e) {
+    console.warn('[Permate] Postback failed:', e.message);
+  }
+}
+
 export default async function handler(req, res) {
   // Chỉ nhận POST
   if (req.method !== 'POST') {
@@ -50,6 +62,14 @@ export default async function handler(req, res) {
     });
 
     const updated = await updateRes.json();
+
+    // Fire Permate postback sau khi xác nhận thanh toán thành công
+    // updated[0] chứa click_uuid và so_tien từ đơn hàng
+    if (updated?.[0]) {
+      const { click_uuid, so_tien } = updated[0];
+      firePermatePostback(click_uuid, so_tien).catch(() => {});
+      console.log(`[Permate] Order ${orderCode} paid — click: ${click_uuid}, value: ${so_tien}`);
+    }
 
     return res.status(200).json({ success: true, order_code: orderCode, updated });
 

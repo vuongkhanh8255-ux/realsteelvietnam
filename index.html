@@ -1397,10 +1397,6 @@ if(orderForm){
       });
 
       if(res.ok || res.status === 201) {
-        // Fire Permate postback
-        const saleValue = _packagePriceMap[packageVal] || 285000;
-        await firePermatePostback(_finalClickUuid, saleValue);
-
         // Thay alert bằng UI đẹp hơn
         document.getElementById('checkout').innerHTML = `
           <div class="container">

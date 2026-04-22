@@ -104,8 +104,7 @@ export default async function handler(req, res) {
     });
     const data = await response.json();
 
-    // Fire Permate postback (không chặn flow dù thất bại)
-    firePermatePostback(click_uuid, so_tien).catch(() => {});
+    // ⚠️ KHÔNG fire postback ở đây — chỉ fire khi thanh toán thành công (webhook.js)
 
     // Gửi email sequence nếu có email
     if (email && RESEND_API_KEY) {
