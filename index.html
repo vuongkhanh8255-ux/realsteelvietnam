@@ -798,6 +798,23 @@ select.form-control {
 </head>
 <body>
 
+<!-- ── ANNOUNCEMENT BANNER (do MCP agent điều khiển) ── -->
+<div id="announcement-bar" style="display:none;padding:10px 24px;text-align:center;font-size:14px;font-weight:600;position:relative;z-index:200"></div>
+
+<script>
+fetch('/announcement.json').then(r=>r.json()).then(d=>{
+  if(!d.active) return;
+  const bar = document.getElementById('announcement-bar');
+  const colors = { info:'#1d4ed8', success:'#15803d', warning:'#b45309' };
+  const bg = { info:'#dbeafe', success:'#dcfce7', warning:'#fef3c7' };
+  bar.style.background = bg[d.type] || bg.info;
+  bar.style.color = colors[d.type] || colors.info;
+  bar.style.borderBottom = `2px solid ${colors[d.type]||colors.info}`;
+  bar.textContent = d.message;
+  bar.style.display = 'block';
+}).catch(()=>{});
+</script>
+
 <nav id="nav">
   <div class="nav-logo">REAL<span>STEEL</span></div>
   <ul class="nav-links">
